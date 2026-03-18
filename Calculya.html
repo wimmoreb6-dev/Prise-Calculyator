@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D Print Manager PRO</title>
+    <style>
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(70, 70, 70, 0.18) 0%, transparent 30%),
+                radial-gradient(circle at bottom right, rgba(90, 90, 90, 0.12) 0%, transparent 35%),
+                linear-gradient(180deg, #1a1a1c 0%, #111214 45%, #0c0c0d 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px 10px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 460px;
+            background-color: transparent;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0;
+            text-align: left;
+            line-height: 1.2;
+        }
+
+        .top-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .icon-action-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #38383a;
+            background: #1c1c1e;
+            color: #d0d0d4;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s ease;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.16);
+        }
+
+        .icon-action-btn:hover {
+            background: #2a2a2d;
+            color: #ffffff;
+            border-color: #4a4a4e;
+        }
+
+        .icon-action-btn:active {
+            transform: scale(0.96);
+        }
+
+        .icon-action-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+        }
+
+        .floating-menu {
+            position: absolute;
+            top: 48px;
+            right: 0;
+            width: 260px;
+            background: rgba(28, 28, 30, 0.98);
+            border: 1px solid #38383a;
+            border-radius: 14px;
+            padding: 6px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.3);
+            display: none;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .floating-menu.open {
+            display: block;
+            animation: fadeInMenu 0.18s ease;
+        }
+
+        @keyframes fadeInMenu {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .floating-menu-item {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            text-align: left;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.18s ease;
+        }
+
+        .floating-menu-item:hover {
+            background: #2c2c2e;
+        }
+
+        .floating-menu-item:active {
+            transform: scale(0.99);
+        }
+
+        .tabs {
+            display: flex;
+            background-color: #1c1c1e;
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 13px;
+            color: #8e8e93;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+            user-select: none;
+        }
+
+        .tab-btn.active {
+            background-color: #38383a;
+            color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background-color: #1c1c1e;
+            border-radius: 16px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.16);
+        }
+
+        .card-title {
+            color: #34c759;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #38383a;
+        }
+
+        .input-group:last-child {
+            border-bottom: none;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            color: #ffffff;
+            flex: 1;
+            line-height: 1.35;
+        }
+
+        .input-group input[type="text"],
+        .input-group select {
+            width: 150px;
+            padding: 8px 10px;
+            background-color: #2c2c2e;
+            border: 1px solid #38383a;
+            border-radius: 8px;
+            color: white;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .input-group select {
+            text-align: center;
+            appearance: none;
+        }
+
+        .input-group input[type="text"]:focus,
+        .input-group select:focus {
+            border-color: #34c759;
+        }
+
+        button.calc-btn,
+        button.secondary-btn,
+        button.modal-btn {
+            width: 100%;
+            padding: 15px;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+
+        button.calc-btn {
+            background-color: #34c759;
+        }
+
+        button.calc-btn:active,
+        button.secondary-btn:active,
+        button.modal-btn:active {
+            transform: scale(0.97);
+        }
+
+        button.calc-btn:active {
+            background-color: #2eb050;
+        }
+
+        button.add-btn {
+            background-color: #0a84ff;
+            margin-top: 15px;
+        }
+
+        button.secondary-btn {
+            background-color: #2c2c2e;
+            border: 1px solid #3b3b3d;
+            font-size: 15px;
+        }
+
+        button.secondary-btn:hover {
+            background-color: #343437;
+        }
+
+        .preset-item,
+        .saved-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            background-color: #2c2c2e;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .preset-info,
+        .saved-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .preset-sub,
+        .saved-sub {
+            font-size: 11px;
+            color: #8e8e93;
+            margin-top: 2px;
+        }
+
+        .saved-sub strong {
+            color: #d8d8dc;
+            font-weight: 600;
+        }
+
+        .saved-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .mini-btn {
+            background: #3a3a3c;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.18s ease;
+        }
+
+        .mini-btn:hover {
+            background: #4a4a4e;
+        }
+
+        .mini-btn.edit-btn {
+            background: #0a84ff;
+        }
+
+        .mini-btn.edit-btn:hover {
+            background: #2894ff;
+        }
+
+        .mini-btn.delete-mini-btn {
+            background: rgba(120, 25, 25, 0.28);
+            color: #d67676;
+        }
+
+        .mini-btn.delete-mini-btn:hover {
+            background: rgba(150, 35, 35, 0.35);
+        }
+
+        .delete-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(120, 25, 25, 0.18);
+            border: 1px solid rgba(140, 35, 35, 0.28);
+            border-radius: 10px;
+            cursor: pointer;
+            padding: 0;
+            transition: 0.2s ease;
+            color: #a94a4a;
+            flex-shrink: 0;
+        }
+
+        .delete-btn:hover {
+            background: rgba(120, 25, 25, 0.28);
+            border-color: rgba(170, 60, 60, 0.4);
+            color: #c96b6b;
+        }
+
+        .delete-btn:active {
+            transform: scale(0.95);
+        }
+
+        .delete-btn svg {
+            width: 15px;
+            height: 15px;
+            stroke: currentColor;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 15px;
+            color: #ebebf5;
+        }
+
+        .result-total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #38383a;
+            font-size: 20px;
+            font-weight: bold;
+            color: #34c759;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .profit-total {
+            color: #ff9f0a;
+        }
+
+        .add-form {
+            background-color: #242426;
+            padding: 10px;
+            border-radius: 12px;
+            margin-top: 10px;
+            border: 1px dashed #38383a;
+        }
+
+        .empty-state {
+            color: #8e8e93;
+            font-size: 13px;
+            text-align: center;
+            padding: 12px 0 4px;
+        }
+
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        .number-input-wrap {
+            position: relative;
+            width: 118px;
+            flex-shrink: 0;
+        }
+
+        .number-input-wrap input[type="number"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 48px 8px 10px;
+            background-color: #2c2c2e;
+            border: 1px solid #38383a;
+            border-radius: 10px;
+            color: white;
+            text-align: right;
+            outline: none;
+            font-size: 14px;
+            transition: 0.2s ease;
+        }
+
+        .number-input-wrap input[type="number"]:focus {
+            border-color: #34c759;
+            box-shadow: 0 0 0 1px rgba(52, 199, 89, 0.12);
+        }
+
+        .stepper-controls {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 26px;
+            height: calc(100% - 10px);
+            display: flex;
+            flex-direction: column;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #232325;
+            border: 1px solid #3b3b3d;
+        }
+
+        .stepper-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: #9a9aa1;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.18s ease, color 0.18s ease;
+            user-select: none;
+        }
+
+        .stepper-btn + .stepper-btn {
+            border-top: 1px solid #363638;
+        }
+
+        .stepper-btn:hover {
+            background: #323235;
+            color: #d7d7dc;
+        }
+
+        .stepper-btn:active {
+            background: #3c3c40;
+        }
+
+        .stepper-btn svg {
+            width: 10px;
+            height: 10px;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            fill: none;
+            pointer-events: none;
+        }
+
+        .batch-card {
+            padding-bottom: 12px;
+        }
+
+        .switch-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            min-height: 24px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            display: none;
+        }
+
+        .switch-slider {
+            position: absolute;
+            inset: 0;
+            background: #3a3a3c;
+            border-radius: 999px;
+            transition: 0.25s ease;
+            cursor: pointer;
+        }
+
+        .switch-slider:before {
+            content: "";
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            left: 3px;
+            top: 3px;
+            border-radius: 50%;
+            background: #ffffff;
+            transition: 0.25s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+
+        .switch input:checked + .switch-slider {
+            background: #34c759;
+        }
+
+        .switch input:checked + .switch-slider:before {
+            transform: translateX(14px);
+        }
+
+        #batch-qty-row {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #38383a;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.58);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            z-index: 5000;
+            backdrop-filter: blur(6px);
+        }
+
+        .modal-overlay.open {
+            display: flex;
+            animation: fadeIn 0.18s ease;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 400px;
+            background: #1c1c1e;
+            border: 1px solid #38383a;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.38);
+        }
+
+        .modal-title {
+            color: #34c759;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .modal-text {
+            color: #d8d8dc;
+            font-size: 14px;
+            line-height: 1.45;
+            margin-bottom: 14px;
+        }
+
+        .modal-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #38383a;
+            background: #2c2c2e;
+            color: #fff;
+            outline: none;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .modal-input:focus {
+            border-color: #34c759;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .modal-btn {
+            width: auto;
+            min-width: 120px;
+            margin-top: 0;
+            padding: 12px 14px;
+            font-size: 14px;
+            border-radius: 12px;
+        }
+
+        .modal-btn.secondary {
+            background: #2c2c2e;
+            border: 1px solid #3b3b3d;
+        }
+
+        .modal-btn.primary {
+            background: #34c759;
+        }
+
+        .modal-btn.danger {
+            background: #a83232;
+        }
+
+        @media (max-width: 420px) {
+            .tab-btn {
+                font-size: 12px;
+            }
+
+            h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="top-bar">
+        <h1>3D Print Manager</h1>
+
+        <div class="top-actions">
+            <button class="icon-action-btn" onclick="toggleExportMenu()" title="Экспорт">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 3v11"></path>
+                    <path d="M8 10l4 4 4-4"></path>
+                    <path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"></path>
+                </svg>
+            </button>
+
+            <button class="icon-action-btn" onclick="openImportPicker()" title="Импорт">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 21V10"></path>
+                    <path d="M16 14l-4-4-4 4"></path>
+                    <path d="M5 7V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+
+            <div class="floating-menu" id="export-menu">
+                <button class="floating-menu-item" onclick="exportPresets()">Экспортировать пресеты</button>
+                <button class="floating-menu-item" onclick="exportCalculations()">Экспортировать все просчёты</button>
+                <button class="floating-menu-item" onclick="exportAllData()">Экспортировать всё</button>
+            </div>
+
+            <input type="file" id="import-file-input" accept=".json,application/json" style="display:none" onchange="handleImportFile(event)">
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-btn" onclick="openTab('tab-settings')" id="btn-settings">⚙️ Настройки</div>
+        <div class="tab-btn active" onclick="openTab('tab-production')" id="btn-production">🖨️ Производство</div>
+        <div class="tab-btn" onclick="openTab('tab-sales')" id="btn-sales">💰 Продажа</div>
+        <div class="tab-btn" onclick="openTab('tab-saved')" id="btn-saved">📚 Сохранённые</div>
+    </div>
+
+    <div id="tab-settings" class="tab-content">
+        <div class="card">
+            <div class="card-title">Глобальные расходы</div>
+            <div class="input-group">
+                <label>Тариф электричества (₽/кВт):</label>
+                <input type="number" id="global-tariff" value="6.43" step="0.01" onchange="saveGlobalSettings()">
+            </div>
+            <div class="input-group">
+                <label>Амортизация мастерской (%):</label>
+                <input type="number" id="global-overhead" value="5" onchange="saveGlobalSettings()">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Пресеты принтеров</div>
+            <div id="printers-list"></div>
+            
+            <div class="add-form">
+                <div style="font-size: 13px; color: #0a84ff; margin-bottom: 10px; font-weight: bold;">+ НОВЫЙ ПРИНТЕР</div>
+                <div class="input-group"><label>Название:</label><input type="text" id="new-pr-name" placeholder="Ender 3"></div>
+                <div class="input-group"><label>Цена принтера (₽):</label><input type="number" id="new-pr-price" placeholder="20000"></div>
+                <div class="input-group"><label>Ресурс (часов):</label><input type="number" id="new-pr-life" placeholder="3000"></div>
+                <div class="input-group"><label>Мощность (кВт):</label><input type="number" id="new-pr-power" placeholder="0.25" step="0.01"></div>
+                <div class="input-group"><label>Обслуживание (₽/час):</label><input type="number" id="new-pr-maint" placeholder="2" step="0.01"></div>
+                <button class="calc-btn add-btn" onclick="addPrinter()">Добавить принтер</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Пресеты пластиков</div>
+            <div id="plastics-list"></div>
+
+            <div class="add-form">
+                <div style="font-size: 13px; color: #0a84ff; margin-bottom: 10px; font-weight: bold;">+ НОВЫЙ ПЛАСТИК</div>
+                <div class="input-group"><label>Название:</label><input type="text" id="new-pl-name" placeholder="PETG FDPlast"></div>
+                <div class="input-group"><label>Цена катушки (₽):</label><input type="number" id="new-pl-price" placeholder="1000"></div>
+                <div class="input-group"><label>Вес (грамм):</label><input type="number" id="new-pl-weight" value="1000"></div>
+                <div class="input-group"><label>Закладываем на брак (%):</label><input type="number" id="new-pl-defect" value="3"></div>
+                <button class="calc-btn add-btn" onclick="addPlastic()">Добавить пластик</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-production" class="tab-content active">
+        <div class="card">
+            <div class="card-title">Оборудование и Материал</div>
+            <div class="input-group"><label>Принтер:</label><select id="select-printer"></select></div>
+            <div class="input-group"><label>Пластик:</label><select id="select-plastic"></select></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Параметры печати</div>
+            <div class="input-group">
+                <label>Вес изделия (г):</label>
+                <input type="number" id="prod-weight" placeholder="0">
+            </div>
+            <div class="input-group">
+                <label>Время (часы):</label>
+                <input type="number" id="prod-hours" placeholder="0">
+            </div>
+            <div class="input-group">
+                <label>Время (минуты):</label>
+                <input type="number" id="prod-mins" placeholder="0">
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Доп. расходы</div>
+            <div class="input-group">
+                <label>Упаковка (₽):</label>
+                <input type="number" id="prod-pack" value="0">
+            </div>
+            <div class="input-group">
+                <label>Доп. химия/перчатки (₽):</label>
+                <input type="number" id="prod-extra" value="0">
+            </div>
+        </div>
+
+        <div class="card batch-card">
+            <div class="switch-row">
+                <div class="card-title" style="margin-bottom: 0;">Партия</div>
+                <label class="switch">
+                    <input type="checkbox" id="batch-enabled" onchange="toggleBatchFields()">
+                    <span class="switch-slider"></span>
+                </label>
+            </div>
+
+            <div class="input-group" id="batch-qty-row">
+                <label>Кол-во штук:</label>
+                <input type="number" id="prod-qty" value="2" min="2">
+            </div>
+        </div>
+
+        <button class="calc-btn" onclick="calculateCost()">Рассчитать себестоимость</button>
+
+        <div class="card" id="result-production" style="display: none; margin-top: 15px;">
+            <div class="card-title">Себестоимость изделия</div>
+            <div class="result-row">Пластик (с браком): <span id="res-plastic">0 ₽</span></div>
+            <div class="result-row">Электричество: <span id="res-elec">0 ₽</span></div>
+            <div class="result-row">Износ принтера: <span id="res-amort">0 ₽</span></div>
+            <div class="result-row">Обслуживание: <span id="res-maint">0 ₽</span></div>
+            <div class="result-row">Доп. расходы: <span id="res-direct">0 ₽</span></div>
+            <div class="result-row">Накладные расходы: <span id="res-overhead">0 ₽</span></div>
+            <div class="result-row" id="res-batch-row" style="display: none;">Партия: <span id="res-qty">0 шт.</span></div>
+            <div class="result-row">Себестоимость 1 изделия: <span id="res-one-cost">0 ₽</span></div>
+            <div class="result-total">Себестоимость всей партии: <span id="res-total-cost">0 ₽</span></div>
+            <button class="secondary-btn" onclick="saveCurrentCalculation()">Сохранить просчёт</button>
+        </div>
+    </div>
+
+    <div id="tab-sales" class="tab-content">
+        <div class="card">
+            <div class="card-title">Стратегия цены</div>
+            <div class="input-group"><label>Наценка (%):</label><input type="number" id="sales-markup" value="100"></div>
+            <div class="input-group"><label>Комиссия площадки (%):</label><input type="number" id="sales-fee" value="0"></div>
+            <div class="input-group"><label>Доставка за твой счет (₽):</label><input type="number" id="sales-delivery" value="0"></div>
+        </div>
+        <button class="calc-btn" onclick="calculateSales()">Сформировать цену</button>
+        <div class="card" id="result-sales" style="display: none; margin-top: 15px;">
+            <div class="card-title">Финансовый итог</div>
+            <div class="result-row">Себестоимость: <span id="res-sale-cost">0 ₽</span></div>
+            <div class="result-row">Комиссия площадки: <span id="res-sale-fee">0 ₽</span></div>
+            <div class="result-row">Доставка: <span id="res-sale-delivery">0 ₽</span></div>
+            <div class="result-total">Цена для клиента: <span id="res-client-price">0 ₽</span></div>
+            <div class="result-total profit-total">Твоя ЧИСТАЯ прибыль: <span id="res-net-profit">0 ₽</span></div>
+        </div>
+    </div>
+
+    <div id="tab-saved" class="tab-content">
+        <div class="card">
+            <div class="card-title">Сохранённые просчёты</div>
+            <div id="saved-calculations-list"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="app-modal-overlay">
+    <div class="modal" id="app-modal">
+        <div class="modal-title" id="modal-title">Окно</div>
+        <div class="modal-text" id="modal-text"></div>
+        <div id="modal-extra"></div>
+        <div class="modal-actions" id="modal-actions"></div>
+    </div>
+</div>
+
+<script>
+    const defaultPrinters = [
+        { id: generateId('pr_'), name: 'Базовый принтер (пример)', price: 25000, lifespan: 3000, power: 0.25, maintenance: 2 }
+    ];
+
+    const defaultPlastics = [
+        { id: generateId('pl_'), name: 'PLA Базовый (пример)', price: 1200, weight: 1000, defectRate: 2 }
+    ];
+
+    let printers = JSON.parse(localStorage.getItem('myPrinters')) || defaultPrinters;
+    let plastics = JSON.parse(localStorage.getItem('myPlastics')) || defaultPlastics;
+    let savedCalculations = JSON.parse(localStorage.getItem('savedCalculations')) || [];
+    let globalTotalCost = 0;
+    let currentCalculationData = null;
+    let pendingImportData = null;
+
+    window.onload = function () {
+        document.getElementById('global-tariff').value = localStorage.getItem('globalTariff') || 6.43;
+        document.getElementById('global-overhead').value = localStorage.getItem('globalOverhead') || 5;
+
+        persistBaseDataIfNeeded();
+        updateUI();
+        enhanceNumberInputs();
+    };
+
+    function generateId(prefix = '') {
+        return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function persistBaseDataIfNeeded() {
+        localStorage.setItem('myPrinters', JSON.stringify(printers));
+        localStorage.setItem('myPlastics', JSON.stringify(plastics));
+        localStorage.setItem('savedCalculations', JSON.stringify(savedCalculations));
+    }
+
+    function saveGlobalSettings() {
+        localStorage.setItem('globalTariff', document.getElementById('global-tariff').value);
+        localStorage.setItem('globalOverhead', document.getElementById('global-overhead').value);
+    }
+
+    function savePrinters() {
+        localStorage.setItem('myPrinters', JSON.stringify(printers));
+    }
+
+    function savePlastics() {
+        localStorage.setItem('myPlastics', JSON.stringify(plastics));
+    }
+
+    function saveCalculationsToStorage() {
+        localStorage.setItem('savedCalculations', JSON.stringify(savedCalculations));
+    }
+
+    function openModal({ title = '', text = '', extraHtml = '', buttons = [] }) {
+        document.getElementById('modal-title').textContent = title;
+        document.getElementById('modal-text').textContent = text;
+        document.getElementById('modal-extra').innerHTML = extraHtml;
+
+        const actions = document.getElementById('modal-actions');
+        actions.innerHTML = '';
+
+        buttons.forEach(btn => {
+            const button = document.createElement('button');
+            button.className = `modal-btn ${btn.variant || 'secondary'}`;
+            button.textContent = btn.label;
+            button.onclick = () => {
+                if (btn.onClick) btn.onClick();
+            };
+            actions.appendChild(button);
+        });
+
+        document.getElementById('app-modal-overlay').classList.add('open');
+    }
+
+    function closeModal() {
+        document.getElementById('app-modal-overlay').classList.remove('open');
+        document.getElementById('modal-extra').innerHTML = '';
+    }
+
+    document.getElementById('app-modal-overlay').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    function showAlert(message, title = 'Сообщение') {
+        openModal({
+            title,
+            text: message,
+            buttons: [
+                { label: 'Понятно', variant: 'primary', onClick: closeModal }
+            ]
+        });
+    }
+
+    function showConfirm({ title, text, confirmLabel = 'Подтвердить', cancelLabel = 'Отмена', confirmVariant = 'primary', onConfirm, onCancel }) {
+        openModal({
+            title,
+            text,
+            buttons: [
+                {
+                    label: cancelLabel,
+                    variant: 'secondary',
+                    onClick: () => {
+                        closeModal();
+                        if (onCancel) onCancel();
+                    }
+                },
+                {
+                    label: confirmLabel,
+                    variant: confirmVariant,
+                    onClick: () => {
+                        closeModal();
+                        if (onConfirm) onConfirm();
+                    }
+                }
+            ]
+        });
+    }
+
+    function showSaveCalculationModal(defaultName, onSave) {
+    openModal({
+        title: 'Сохранить просчёт',
+        text: 'Введите название для сохранённого просчёта.',
+        extraHtml: `<input class="modal-input" id="save-calc-name-input" type="text" value="${escapeHtml(defaultName)}" placeholder="Название просчёта">`,
+        buttons: [
+            {
+                label: 'Сохранить',
+                variant: 'primary',
+                onClick: () => {
+                    const input = document.getElementById('save-calc-name-input');
+                    const value = input ? input.value.trim() : '';
+                    if (!value) {
+                        input.focus();
+                        return;
+                    }
+                    closeModal();
+                    onSave(value);
+                }
+            }
+        ]
+    });
+
+        setTimeout(() => {
+            const input = document.getElementById('save-calc-name-input');
+            if (input) {
+                input.focus();
+                input.select();
+            }
+        }, 40);
+    }
+
+    function showImportModeModal(data) {
+        pendingImportData = data;
+
+        openModal({
+            title: 'Импорт данных',
+            text: 'Выбери, как загрузить данные из файла.',
+            extraHtml: '',
+            buttons: [
+                {
+                    label: 'Отмена',
+                    variant: 'secondary',
+                    onClick: () => {
+                        pendingImportData = null;
+                        closeModal();
+                    }
+                },
+                {
+                    label: 'Добавить к текущим',
+                    variant: 'primary',
+                    onClick: () => {
+                        const importDataCopy = pendingImportData;
+                        pendingImportData = null;
+                        closeModal();
+                        applyImportByType(importDataCopy, false);
+                    }
+                },
+                {
+                    label: 'Заменить текущие',
+                    variant: 'danger',
+                    onClick: () => {
+                        const importDataCopy = pendingImportData;
+                        pendingImportData = null;
+                        closeModal();
+                        showConfirm({
+                            title: 'Полная замена данных',
+                            text: 'Точно заменить текущие данные данными из файла? Это действие нельзя отменить.',
+                            confirmLabel: 'Заменить',
+                            confirmVariant: 'danger',
+                            onConfirm: () => applyImportByType(importDataCopy, true)
+                        });
+                    }
+                }
+            ]
+        });
+    }
+
+    function addPrinter() {
+        let name = document.getElementById('new-pr-name').value.trim();
+        let price = parseFloat(document.getElementById('new-pr-price').value);
+        let life = parseFloat(document.getElementById('new-pr-life').value);
+        let power = parseFloat(document.getElementById('new-pr-power').value);
+        let maint = parseFloat(document.getElementById('new-pr-maint').value);
+
+        if (!name || isNaN(price) || isNaN(life) || isNaN(power) || isNaN(maint)) {
+            showAlert("Заполни все поля принтера цифрами!");
+            return;
+        }
+
+        printers.push({
+            id: generateId('pr_'),
+            name,
+            price,
+            lifespan: life,
+            power,
+            maintenance: maint
+        });
+
+        savePrinters();
+
+        document.getElementById('new-pr-name').value = '';
+        document.getElementById('new-pr-price').value = '';
+        document.getElementById('new-pr-life').value = '';
+        document.getElementById('new-pr-power').value = '';
+        document.getElementById('new-pr-maint').value = '';
+
+        updateUI();
+        enhanceNumberInputs();
+        showAlert("Принтер добавлен!");
+    }
+
+    function addPlastic() {
+        let name = document.getElementById('new-pl-name').value.trim();
+        let price = parseFloat(document.getElementById('new-pl-price').value);
+        let weight = parseFloat(document.getElementById('new-pl-weight').value);
+        let defect = parseFloat(document.getElementById('new-pl-defect').value);
+
+        if (!name || isNaN(price) || isNaN(weight) || isNaN(defect)) {
+            showAlert("Заполни все поля пластика!");
+            return;
+        }
+
+        plastics.push({
+            id: generateId('pl_'),
+            name,
+            price,
+            weight,
+            defectRate: defect
+        });
+
+        savePlastics();
+
+        document.getElementById('new-pl-name').value = '';
+        document.getElementById('new-pl-price').value = '';
+
+        updateUI();
+        enhanceNumberInputs();
+        showAlert("Пластик добавлен!");
+    }
+
+    function deletePrinter(id) {
+        showConfirm({
+            title: 'Удаление принтера',
+            text: 'Удалить этот принтер?',
+            confirmLabel: 'Удалить',
+            confirmVariant: 'danger',
+            onConfirm: () => {
+                printers = printers.filter(p => p.id !== id);
+                savePrinters();
+                updateUI();
+            }
+        });
+    }
+
+    function deletePlastic(id) {
+        showConfirm({
+            title: 'Удаление пластика',
+            text: 'Удалить этот пластик?',
+            confirmLabel: 'Удалить',
+            confirmVariant: 'danger',
+            onConfirm: () => {
+                plastics = plastics.filter(p => p.id !== id);
+                savePlastics();
+                updateUI();
+            }
+        });
+    }
+
+    function updateUI() {
+        renderPrintersList();
+        renderPlasticsList();
+        renderSelects();
+        renderSavedCalculations();
+    }
+
+    function renderPrintersList() {
+        let pList = document.getElementById('printers-list');
+        pList.innerHTML = '';
+
+        if (printers.length === 0) {
+            pList.innerHTML = '<div class="empty-state">Пока нет пресетов принтеров</div>';
+            return;
+        }
+
+        printers.forEach(p => {
+            pList.innerHTML += `
+                <div class="preset-item">
+                    <div class="preset-info">
+                        <b>${escapeHtml(p.name)}</b>
+                        <span class="preset-sub">${formatMoney(p.price)}₽ | ${p.power}кВт | Обсл: ${formatMoney(p.maintenance)}₽/ч</span>
+                    </div>
+                    <button class="delete-btn" onclick="deletePrinter('${p.id}')" title="Удалить">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M8 6V4h8v2"></path>
+                            <path d="M19 6l-1 14H6L5 6"></path>
+                            <path d="M10 11v6"></path>
+                            <path d="M14 11v6"></path>
+                        </svg>
+                    </button>
+                </div>`;
+        });
+    }
+
+    function renderPlasticsList() {
+        let plList = document.getElementById('plastics-list');
+        plList.innerHTML = '';
+
+        if (plastics.length === 0) {
+            plList.innerHTML = '<div class="empty-state">Пока нет пресетов пластиков</div>';
+            return;
+        }
+
+        plastics.forEach(p => {
+            plList.innerHTML += `
+                <div class="preset-item">
+                    <div class="preset-info">
+                        <b>${escapeHtml(p.name)}</b>
+                        <span class="preset-sub">${formatMoney(p.price)}₽ за ${p.weight}г | Брак: ${p.defectRate}%</span>
+                    </div>
+                    <button class="delete-btn" onclick="deletePlastic('${p.id}')" title="Удалить">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M8 6V4h8v2"></path>
+                            <path d="M19 6l-1 14H6L5 6"></path>
+                            <path d="M10 11v6"></path>
+                            <path d="M14 11v6"></path>
+                        </svg>
+                    </button>
+                </div>`;
+        });
+    }
+
+    function renderSelects() {
+        let pSelect = document.getElementById('select-printer');
+        let currentPrinterValue = pSelect.value;
+        pSelect.innerHTML = '';
+        printers.forEach(p => {
+            pSelect.innerHTML += `<option value="${p.id}">${escapeHtml(p.name)}</option>`;
+        });
+        if (printers.some(p => p.id === currentPrinterValue)) pSelect.value = currentPrinterValue;
+
+        let plSelect = document.getElementById('select-plastic');
+        let currentPlasticValue = plSelect.value;
+        plSelect.innerHTML = '';
+        plastics.forEach(p => {
+            plSelect.innerHTML += `<option value="${p.id}">${escapeHtml(p.name)}</option>`;
+        });
+        if (plastics.some(p => p.id === currentPlasticValue)) plSelect.value = currentPlasticValue;
+    }
+
+    function renderSavedCalculations() {
+        const list = document.getElementById('saved-calculations-list');
+        list.innerHTML = '';
+
+        if (savedCalculations.length === 0) {
+            list.innerHTML = '<div class="empty-state">Пока нет сохранённых просчётов</div>';
+            return;
+        }
+
+        const sorted = [...savedCalculations].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        sorted.forEach(item => {
+            const printerName = item.printerName || getPrinterNameById(item.printerId);
+            const plasticName = item.plasticName || getPlasticNameById(item.plasticId);
+            const qtyText = item.batchEnabled ? `${item.qty} шт.` : '1 шт.';
+            const clientPriceText = item.salesCalculated ? ` | Цена: ${Math.ceil(item.clientPrice)} ₽` : '';
+
+            list.innerHTML += `
+                <div class="saved-item">
+                    <div class="saved-info">
+                        <b>${escapeHtml(item.name)}</b>
+                        <span class="saved-sub">${formatDate(item.createdAt)}</span>
+                        <span class="saved-sub">${escapeHtml(printerName)} • ${escapeHtml(plasticName)}</span>
+                        <span class="saved-sub"><strong>${qtyText}</strong> • 1 шт: ${formatMoney(item.oneItemCost)} ₽ • Итого: ${formatMoney(item.totalCost)} ₽${clientPriceText}</span>
+                    </div>
+                    <div class="saved-actions">
+                        <button class="mini-btn edit-btn" onclick="editCalculation('${item.id}')">Редактировать</button>
+                        <button class="mini-btn delete-mini-btn" onclick="deleteCalculation('${item.id}')">Удалить</button>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function openTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+        document.getElementById(tabName).classList.add('active');
+
+        if (tabName === 'tab-settings') document.getElementById('btn-settings').classList.add('active');
+        if (tabName === 'tab-production') document.getElementById('btn-production').classList.add('active');
+        if (tabName === 'tab-sales') document.getElementById('btn-sales').classList.add('active');
+        if (tabName === 'tab-saved') document.getElementById('btn-saved').classList.add('active');
+    }
+
+    function toggleBatchFields() {
+        const enabled = document.getElementById('batch-enabled').checked;
+        const row = document.getElementById('batch-qty-row');
+        row.style.display = enabled ? 'flex' : 'none';
+    }
+
+    function calculateCost() {
+        let isBatch = document.getElementById('batch-enabled').checked;
+        let qty = isBatch ? (parseFloat(document.getElementById('prod-qty').value) || 0) : 1;
+
+        let weight = parseFloat(document.getElementById('prod-weight').value) || 0;
+        let hours = parseFloat(document.getElementById('prod-hours').value) || 0;
+        let mins = parseFloat(document.getElementById('prod-mins').value) || 0;
+
+        let printer = printers.find(p => p.id === document.getElementById('select-printer').value);
+        let plastic = plastics.find(pl => pl.id === document.getElementById('select-plastic').value);
+
+        if (!printer || !plastic) {
+            showAlert("Добавь хотя бы 1 принтер и 1 пластик в Настройках!");
+            return;
+        }
+
+        if (isBatch && qty < 2) {
+            showAlert("Для партии укажи количество от 2 штук.");
+            return;
+        }
+
+        if (weight === 0 && hours === 0 && mins === 0) {
+            showAlert("Введи вес и время печати!");
+            return;
+        }
+
+        let oneItemTimeHours = hours + (mins / 60);
+        let totalTimeHours = isBatch ? oneItemTimeHours * qty : oneItemTimeHours;
+
+        let tariff = parseFloat(document.getElementById('global-tariff').value) || 0;
+        let overheadPercent = parseFloat(document.getElementById('global-overhead').value) || 0;
+
+        let costPerGram = plastic.price / plastic.weight;
+        let totalWeight = isBatch ? weight * qty : weight;
+        let plasticCost = totalWeight * costPerGram * (1 + (plastic.defectRate / 100));
+
+        let elecCost = totalTimeHours * printer.power * tariff;
+        let amortCost = totalTimeHours * (printer.price / printer.lifespan);
+        let maintCost = totalTimeHours * printer.maintenance;
+
+        let packCost = parseFloat(document.getElementById('prod-pack').value) || 0;
+        let extraCost = parseFloat(document.getElementById('prod-extra').value) || 0;
+        let directCost = isBatch ? (packCost + extraCost) * qty : (packCost + extraCost);
+
+        let subTotal = plasticCost + elecCost + amortCost + maintCost + directCost;
+        let overheadCost = subTotal * (overheadPercent / 100);
+
+        globalTotalCost = subTotal + overheadCost;
+        let oneItemCost = globalTotalCost / qty;
+
+        document.getElementById('res-plastic').innerText = formatMoney(plasticCost) + ' ₽';
+        document.getElementById('res-elec').innerText = formatMoney(elecCost) + ' ₽';
+        document.getElementById('res-amort').innerText = formatMoney(amortCost) + ' ₽';
+        document.getElementById('res-maint').innerText = formatMoney(maintCost) + ' ₽';
+        document.getElementById('res-direct').innerText = formatMoney(directCost) + ' ₽';
+        document.getElementById('res-overhead').innerText = formatMoney(overheadCost) + ' ₽';
+        document.getElementById('res-one-cost').innerText = formatMoney(oneItemCost) + ' ₽';
+        document.getElementById('res-total-cost').innerText = formatMoney(globalTotalCost) + ' ₽';
+
+        const batchRow = document.getElementById('res-batch-row');
+        if (isBatch) {
+            batchRow.style.display = 'flex';
+            document.getElementById('res-qty').innerText = qty + ' шт.';
+        } else {
+            batchRow.style.display = 'none';
+        }
+
+        document.getElementById('result-production').style.display = 'block';
+
+        currentCalculationData = {
+            id: null,
+            name: '',
+            createdAt: null,
+            printerId: printer.id,
+            printerName: printer.name,
+            plasticId: plastic.id,
+            plasticName: plastic.name,
+            weight,
+            hours,
+            mins,
+            pack: packCost,
+            extra: extraCost,
+            batchEnabled: isBatch,
+            qty,
+            tariff,
+            overheadPercent,
+            plasticCost,
+            elecCost,
+            amortCost,
+            maintCost,
+            directCost,
+            overheadCost,
+            oneItemCost,
+            totalCost: globalTotalCost,
+            salesCalculated: false,
+            markup: parseFloat(document.getElementById('sales-markup').value) || 0,
+            fee: parseFloat(document.getElementById('sales-fee').value) || 0,
+            delivery: parseFloat(document.getElementById('sales-delivery').value) || 0,
+            clientPrice: 0,
+            netProfit: 0,
+            marketplaceCut: 0
+        };
+    }
+
+    function calculateSales() {
+        if (globalTotalCost === 0) {
+            showAlert("Сначала рассчитай себестоимость во вкладке 'Производство'!");
+            return;
+        }
+
+        let markup = parseFloat(document.getElementById('sales-markup').value) || 0;
+        let fee = parseFloat(document.getElementById('sales-fee').value) || 0;
+        let delivery = parseFloat(document.getElementById('sales-delivery').value) || 0;
+
+        if (fee >= 100) {
+            showAlert("Комиссия площадки не может быть 100% или больше.");
+            return;
+        }
+
+        let basePrice = globalTotalCost + (globalTotalCost * (markup / 100)) + delivery;
+        let clientPrice = basePrice / (1 - (fee / 100));
+        let marketplaceCut = clientPrice * (fee / 100);
+        let netProfit = clientPrice - marketplaceCut - globalTotalCost - delivery;
+
+        document.getElementById('res-sale-cost').innerText = formatMoney(globalTotalCost) + ' ₽';
+        document.getElementById('res-sale-fee').innerText = formatMoney(marketplaceCut) + ' ₽';
+        document.getElementById('res-sale-delivery').innerText = formatMoney(delivery) + ' ₽';
+        document.getElementById('res-client-price').innerText = Math.ceil(clientPrice) + ' ₽';
+        document.getElementById('res-net-profit').innerText = formatMoney(netProfit) + ' ₽';
+        document.getElementById('result-sales').style.display = 'block';
+
+        if (currentCalculationData) {
+            currentCalculationData.markup = markup;
+            currentCalculationData.fee = fee;
+            currentCalculationData.delivery = delivery;
+            currentCalculationData.clientPrice = clientPrice;
+            currentCalculationData.netProfit = netProfit;
+            currentCalculationData.marketplaceCut = marketplaceCut;
+            currentCalculationData.salesCalculated = true;
+        }
+    }
+
+    function saveCurrentCalculation() {
+        if (!currentCalculationData || globalTotalCost === 0) {
+            showAlert("Сначала рассчитай себестоимость.");
+            return;
+        }
+
+        const defaultName = currentCalculationData.batchEnabled
+            ? `Партия ${currentCalculationData.qty} шт`
+            : 'Новый просчёт';
+
+        showSaveCalculationModal(defaultName, (name) => {
+            const dataToSave = JSON.parse(JSON.stringify(currentCalculationData));
+            dataToSave.id = generateId('calc_');
+            dataToSave.name = name;
+            dataToSave.createdAt = new Date().toISOString();
+
+            savedCalculations.push(dataToSave);
+            saveCalculationsToStorage();
+            updateUI();
+            openTab('tab-saved');
+            showAlert("Просчёт сохранён!");
+        });
+    }
+
+    function editCalculation(id) {
+        const item = savedCalculations.find(calc => calc.id === id);
+        if (!item) return;
+
+        if (!printers.some(p => p.id === item.printerId)) {
+            showAlert("Для этого просчёта не найден нужный принтер. Возможно, его удалили.");
+            return;
+        }
+
+        if (!plastics.some(p => p.id === item.plasticId)) {
+            showAlert("Для этого просчёта не найден нужный пластик. Возможно, его удалили.");
+            return;
+        }
+
+        document.getElementById('select-printer').value = item.printerId;
+        document.getElementById('select-plastic').value = item.plasticId;
+        document.getElementById('prod-weight').value = item.weight;
+        document.getElementById('prod-hours').value = item.hours;
+        document.getElementById('prod-mins').value = item.mins;
+        document.getElementById('prod-pack').value = item.pack;
+        document.getElementById('prod-extra').value = item.extra;
+
+        document.getElementById('batch-enabled').checked = !!item.batchEnabled;
+        toggleBatchFields();
+        document.getElementById('prod-qty').value = item.qty || 2;
+
+        document.getElementById('sales-markup').value = item.markup ?? 100;
+        document.getElementById('sales-fee').value = item.fee ?? 0;
+        document.getElementById('sales-delivery').value = item.delivery ?? 0;
+
+        if (item.tariff !== undefined) document.getElementById('global-tariff').value = item.tariff;
+        if (item.overheadPercent !== undefined) document.getElementById('global-overhead').value = item.overheadPercent;
+        saveGlobalSettings();
+
+        openTab('tab-production');
+        calculateCost();
+
+        if (item.salesCalculated) {
+            calculateSales();
+        }
+    }
+
+    function deleteCalculation(id) {
+        showConfirm({
+            title: 'Удаление просчёта',
+            text: 'Удалить этот сохранённый просчёт?',
+            confirmLabel: 'Удалить',
+            confirmVariant: 'danger',
+            onConfirm: () => {
+                savedCalculations = savedCalculations.filter(calc => calc.id !== id);
+                saveCalculationsToStorage();
+                updateUI();
+            }
+        });
+    }
+
+    function getPrinterNameById(id) {
+        const printer = printers.find(p => p.id === id);
+        return printer ? printer.name : 'Неизвестный принтер';
+    }
+
+    function getPlasticNameById(id) {
+        const plastic = plastics.find(p => p.id === id);
+        return plastic ? plastic.name : 'Неизвестный пластик';
+    }
+
+    function formatMoney(value) {
+        return Number(value || 0).toFixed(2);
+    }
+
+    function formatDate(dateString) {
+        const d = new Date(dateString);
+        if (Number.isNaN(d.getTime())) return '';
+        return d.toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function escapeHtml(text) {
+        return String(text ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function enhanceNumberInputs() {
+        const numberInputs = document.querySelectorAll('input[type="number"]');
+
+        numberInputs.forEach(input => {
+            if (input.dataset.enhanced === 'true') return;
+            input.dataset.enhanced = 'true';
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'number-input-wrap';
+
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+
+            const controls = document.createElement('div');
+            controls.className = 'stepper-controls';
+
+            const upBtn = document.createElement('button');
+            upBtn.type = 'button';
+            upBtn.className = 'stepper-btn';
+            upBtn.innerHTML = `
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 14l6-6 6 6"></path>
+                </svg>
+            `;
+
+            const downBtn = document.createElement('button');
+            downBtn.type = 'button';
+            downBtn.className = 'stepper-btn';
+            downBtn.innerHTML = `
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 10l6 6 6-6"></path>
+                </svg>
+            `;
+
+            upBtn.addEventListener('click', () => stepInputValue(input, 'up'));
+            downBtn.addEventListener('click', () => stepInputValue(input, 'down'));
+
+            controls.appendChild(upBtn);
+            controls.appendChild(downBtn);
+            wrapper.appendChild(controls);
+        });
+    }
+
+    function stepInputValue(input, direction) {
+        const stepAttr = input.getAttribute('step');
+        const step = (stepAttr && stepAttr !== 'any') ? parseFloat(stepAttr) : 1;
+
+        let currentValue = parseFloat(input.value);
+        if (isNaN(currentValue)) currentValue = 0;
+
+        currentValue = direction === 'up' ? currentValue + step : currentValue - step;
+
+        const minAttr = input.getAttribute('min');
+        const maxAttr = input.getAttribute('max');
+
+        if (minAttr !== null && currentValue < parseFloat(minAttr)) currentValue = parseFloat(minAttr);
+        if (maxAttr !== null && currentValue > parseFloat(maxAttr)) currentValue = parseFloat(maxAttr);
+
+        const decimals = step.toString().includes('.') ? step.toString().split('.')[1].length : 0;
+        input.value = currentValue.toFixed(decimals);
+
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    function toggleExportMenu() {
+        document.getElementById('export-menu').classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('export-menu');
+        const exportBtn = document.querySelector('.top-actions .icon-action-btn');
+        if (!menu || !exportBtn) return;
+
+        const clickedInsideMenu = menu.contains(event.target);
+        const clickedButton = exportBtn.contains(event.target);
+
+        if (!clickedInsideMenu && !clickedButton) {
+            menu.classList.remove('open');
+        }
+    });
+
+    function downloadJSON(filename, dataObject) {
+        const jsonString = JSON.stringify(dataObject, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const tempLink = document.createElement('a');
+        tempLink.href = url;
+        tempLink.download = filename;
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
+
+        URL.revokeObjectURL(url);
+    }
+
+    function exportPresets() {
+        const data = {
+            version: 1,
+            exportType: 'presets',
+            exportedAt: new Date().toISOString(),
+            printers,
+            plastics
+        };
+
+        downloadJSON('3dcalc-presets.json', data);
+        document.getElementById('export-menu').classList.remove('open');
+    }
+
+    function exportCalculations() {
+        const data = {
+            version: 1,
+            exportType: 'calculations',
+            exportedAt: new Date().toISOString(),
+            calculations: savedCalculations
+        };
+
+        downloadJSON('3dcalc-calculations.json', data);
+        document.getElementById('export-menu').classList.remove('open');
+    }
+
+    function exportAllData() {
+        const data = {
+            version: 1,
+            exportType: 'full-backup',
+            exportedAt: new Date().toISOString(),
+            globalSettings: {
+                tariff: localStorage.getItem('globalTariff') || '6.43',
+                overhead: localStorage.getItem('globalOverhead') || '5'
+            },
+            printers,
+            plastics,
+            calculations: savedCalculations
+        };
+
+        downloadJSON('3dcalc-full-backup.json', data);
+        document.getElementById('export-menu').classList.remove('open');
+    }
+
+    function openImportPicker() {
+        document.getElementById('import-file-input').click();
+    }
+
+    function handleImportFile(event) {
+        const file = event.target.files[0];
+        event.target.value = '';
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (!data || typeof data !== 'object') {
+                    showAlert("Файл импорта пустой или повреждён.");
+                    return;
+                }
+                showImportModeModal(data);
+            } catch (error) {
+                showAlert("Не удалось прочитать файл. Проверь, что это корректный JSON-файл экспорта.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function applyImportByType(data, replaceMode) {
+        const type = data.exportType;
+
+        if (type === 'presets') {
+            applyPresetsImport(data, replaceMode);
+        } else if (type === 'calculations') {
+            applyCalculationsImport(data, replaceMode);
+        } else if (type === 'full-backup') {
+            applyFullBackupImport(data, replaceMode);
+        } else {
+            showAlert("Неизвестный тип импортируемого файла.");
+            return;
+        }
+
+        updateUI();
+        enhanceNumberInputs();
+        showAlert("Импорт завершён.");
+    }
+
+    function applyPresetsImport(data, replaceMode) {
+        let importedPrinters = Array.isArray(data.printers) ? data.printers : [];
+        let importedPlastics = Array.isArray(data.plastics) ? data.plastics : [];
+
+        if (replaceMode) {
+            printers = importedPrinters.map(cloneWithSafeIdPrinter);
+            plastics = importedPlastics.map(cloneWithSafeIdPlastic);
+        } else {
+            printers = mergePrinters(printers, importedPrinters);
+            plastics = mergePlastics(plastics, importedPlastics);
+        }
+
+        savePrinters();
+        savePlastics();
+    }
+
+    function applyCalculationsImport(data, replaceMode) {
+        let importedCalculations = Array.isArray(data.calculations) ? data.calculations : [];
+
+        if (replaceMode) {
+            savedCalculations = importedCalculations.map(cloneWithSafeIdCalculation);
+        } else {
+            savedCalculations = mergeCalculations(savedCalculations, importedCalculations);
+        }
+
+        saveCalculationsToStorage();
+    }
+
+    function applyFullBackupImport(data, replaceMode) {
+        const importedPrinters = Array.isArray(data.printers) ? data.printers : [];
+        const importedPlastics = Array.isArray(data.plastics) ? data.plastics : [];
+        const importedCalculations = Array.isArray(data.calculations) ? data.calculations : [];
+
+        if (replaceMode) {
+            printers = importedPrinters.map(cloneWithSafeIdPrinter);
+            plastics = importedPlastics.map(cloneWithSafeIdPlastic);
+            savedCalculations = importedCalculations.map(cloneWithSafeIdCalculation);
+        } else {
+            printers = mergePrinters(printers, importedPrinters);
+            plastics = mergePlastics(plastics, importedPlastics);
+            savedCalculations = mergeCalculations(savedCalculations, importedCalculations);
+        }
+
+        if (data.globalSettings) {
+            if (data.globalSettings.tariff !== undefined) {
+                localStorage.setItem('globalTariff', data.globalSettings.tariff);
+                document.getElementById('global-tariff').value = data.globalSettings.tariff;
+            }
+            if (data.globalSettings.overhead !== undefined) {
+                localStorage.setItem('globalOverhead', data.globalSettings.overhead);
+                document.getElementById('global-overhead').value = data.globalSettings.overhead;
+            }
+        }
+
+        savePrinters();
+        savePlastics();
+        saveCalculationsToStorage();
+    }
+
+    function mergePrinters(existing, imported) {
+        const existingKeys = new Set(existing.map(p => `${p.name}|${p.price}|${p.lifespan}|${p.power}|${p.maintenance}`));
+        const result = [...existing];
+
+        imported.forEach(item => {
+            const key = `${item.name}|${item.price}|${item.lifespan}|${item.power}|${item.maintenance}`;
+            if (!existingKeys.has(key)) {
+                result.push(cloneWithSafeIdPrinter(item));
+                existingKeys.add(key);
+            }
+        });
+
+        return result;
+    }
+
+    function mergePlastics(existing, imported) {
+        const existingKeys = new Set(existing.map(p => `${p.name}|${p.price}|${p.weight}|${p.defectRate}`));
+        const result = [...existing];
+
+        imported.forEach(item => {
+            const key = `${item.name}|${item.price}|${item.weight}|${item.defectRate}`;
+            if (!existingKeys.has(key)) {
+                result.push(cloneWithSafeIdPlastic(item));
+                existingKeys.add(key);
+            }
+        });
+
+        return result;
+    }
+
+    function mergeCalculations(existing, imported) {
+        const existingKeys = new Set(existing.map(c => `${c.name}|${c.createdAt}|${c.totalCost}|${c.oneItemCost}`));
+        const result = [...existing];
+
+        imported.forEach(item => {
+            const key = `${item.name}|${item.createdAt}|${item.totalCost}|${item.oneItemCost}`;
+            if (!existingKeys.has(key)) {
+                result.push(cloneWithSafeIdCalculation(item));
+                existingKeys.add(key);
+            }
+        });
+
+        return result;
+    }
+
+    function cloneWithSafeIdPrinter(item) {
+        return {
+            id: generateId('pr_'),
+            name: item.name || 'Без названия',
+            price: Number(item.price) || 0,
+            lifespan: Number(item.lifespan) || 0,
+            power: Number(item.power) || 0,
+            maintenance: Number(item.maintenance) || 0
+        };
+    }
+
+    function cloneWithSafeIdPlastic(item) {
+        return {
+            id: generateId('pl_'),
+            name: item.name || 'Без названия',
+            price: Number(item.price) || 0,
+            weight: Number(item.weight) || 0,
+            defectRate: Number(item.defectRate) || 0
+        };
+    }
+
+    function cloneWithSafeIdCalculation(item) {
+        return {
+            ...item,
+            id: generateId('calc_'),
+            name: item.name || 'Без названия',
+            createdAt: item.createdAt || new Date().toISOString()
+        };
+    }
+</script>
+</body>
+</html>
